@@ -1,60 +1,39 @@
+// Powered by Infostretch 
+
 timestamps {
 
 node () {
 
 	stage ('App-IC - Checkout') {
- 	 checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'git-login', url: 'https://github.com/bnasslahsen/jenkins-sample.git']]]) 
+ 	 checkout([$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'git-login-formation-jenkin', url: 'https://github.com/volteaup/jenkins-sample']]]) 
 	}
-	
-	stage ('App-IC - Clean') {
+	stage ('App-IC - Build') {
+ 	
+// Unable to convert a build step referring to "hudson.plugins.sonar.SonarBuildWrapper". Please verify and convert manually if required.		// Maven build step
 	withMaven(maven: 'maven') { 
  			if(isUnix()) {
- 				sh "mvn clean" 
+ 				sh "mvn clean package " 
 			} else { 
- 				bat "mvn clean" 
+ 				bat "mvn clean package " 
 			} 
- 		}		
-	}
-	
-	stage ('App-IC - Compile') {
+ 		}		// Maven build step
 	withMaven(maven: 'maven') { 
  			if(isUnix()) {
- 				sh "mvn compile" 
+ 				sh "mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=formation-jenkins " 
 			} else { 
- 				bat "mvn compile" 
+ 				bat "mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=formation-jenkins " 
 			} 
- 		}		
+ 		} 
 	}
-	
-	stage ('App-IC - Tests') {
-	withMaven(maven: 'maven') { 
- 			if(isUnix()) {
- 				sh "mvn test" 
-			} else { 
- 				bat "mvn test" 
-			} 
- 		}		
-	}
-	
-	stage ('App-IC - Package') {
-	withMaven(maven: 'maven') { 
- 			if(isUnix()) {
- 				sh "mvn package -DskipTests" 
-			} else { 
- 				bat "mvn package -DskipTests" 
-			} 
- 		}		
-	}
-	
 	stage ('App-IC - Post build actions') {
-		step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: 'badr.nasslahsen@gmail.com', sendToIndividuals: false])
+/*
+Please note this is a direct conversion of post-build actions. 
+It may not necessarily work/behave in the same way as post-build actions work.
+A logic review is suggested.
+*/
+		// Mailer notification
+		step([$class: 'Mailer', notifyEveryUnstableBuild: false, recipients: 'jenkins.orsys@gmail.com', sendToIndividuals: false])
  
-	}
-	
-	stage('Quality check') {
-		withSonarQubeEnv('Sonar') {
-			bat "mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=formation-jenkins"
-		}
 	}
 }
 }
