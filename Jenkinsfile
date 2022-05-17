@@ -50,5 +50,11 @@ node () {
 		step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: 'badr.nasslahsen@gmail.com', sendToIndividuals: false])
  
 	}
+	
+	stage('Quality check') {
+		withSonarQubeEnv('Sonar') {
+			bat "mvn verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=formation-jenkins"
+		}
+	}
 }
 }
